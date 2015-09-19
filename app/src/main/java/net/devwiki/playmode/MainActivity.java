@@ -15,9 +15,6 @@ import android.os.PowerManager;
 import android.view.KeyEvent;
 import android.view.View;
 
-/**
- * Created by Administrator on 2015/8/27 0027.
- */
 public class MainActivity extends Activity implements SensorEventListener, View.OnClickListener{
 
     public static final String TAG = "MainActivity";
@@ -27,6 +24,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     private PowerManager powerManager;
     private PowerManager.WakeLock wakeLock;
     private SensorManager sensorManager;
+    private Sensor sensor;
     private PlayerManager playerManager;
     private MyReceiver receiver;
 
@@ -42,10 +40,9 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     protected void onStart() {
         super.onStart();
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         receiver = new MyReceiver();
@@ -56,10 +53,16 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        DLog.d("onPause");
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
+        DLog.d("onStop");
         sensorManager.unregisterListener(this);
-
         unregisterReceiver(receiver);
     }
 
@@ -68,25 +71,36 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         if (playerManager.isWiredHeadsetOn()){
             return;
         }
-
+        float value = event.values[0];
+        DLog.d("value:" + value);
         if (playerManager.isPlaying()){
-            float value = event.values[0];
-            if (value == 0.0) {
-                playerManager.changeToEarphoneForSensor();
-                if (wakeLock.isHeld()){
-                    return;
-                } else {
-                    wakeLock.acquire();
-                }
-            } else {
+            if (value == sensor.getMaximumRange()) {
                 playerManager.changeToSpeaker();
-                if (wakeLock.isHeld()){
-                    return;
-                } else {
-                    wakeLock.setReferenceCounted(false);
-                    wakeLock.release();
-                }
+                setScreenOn();
+            } else {
+                playerManager.changeToEarphoneForSensor();
+                setScreenOff();
             }
+        } else {
+            if(value == sensor.getMaximumRange()){
+                playerManager.changeToSpeaker();
+                setScreenOn();
+            }
+        }
+    }
+
+    private void setScreenOff(){
+        if (wakeLock == null){
+            wakeLock = powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, TAG);
+        }
+        wakeLock.acquire();
+    }
+
+    private void setScreenOn(){
+        if (wakeLock != null){
+            wakeLock.setReferenceCounted(false);
+            wakeLock.release();
+            wakeLock = null;
         }
     }
 

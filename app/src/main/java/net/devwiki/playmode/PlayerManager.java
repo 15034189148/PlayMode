@@ -139,6 +139,21 @@ public class PlayerManager {
     }
 
     public void raiseVolume(){
+        /*int mode = audioManager.getMode();
+        if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION){
+            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)) {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.ADJUST_RAISE, AudioManager.FX_FOCUS_NAVIGATION_UP);
+            }
+        } else if (mode == AudioManager.MODE_NORMAL){
+            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_RAISE, AudioManager.FX_FOCUS_NAVIGATION_UP);
+            }
+        }*/
+
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
@@ -147,6 +162,21 @@ public class PlayerManager {
     }
 
     public void lowerVolume(){
+        /*int mode = audioManager.getMode();
+        if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION){
+            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)) {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.ADJUST_LOWER, AudioManager.FX_FOCUS_NAVIGATION_UP);
+            }
+        } else if (mode == AudioManager.MODE_NORMAL){
+            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_LOWER, AudioManager.FX_FOCUS_NAVIGATION_UP);
+            }
+        }*/
+
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
