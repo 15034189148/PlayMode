@@ -9,6 +9,20 @@ import android.os.Build;
 public class PhoneModelUtil {
 
     public static String getPhoneModel(){
-        return Build.MODEL;
+        return Build.BRAND + " " + Build.MODEL;
+    }
+
+    public static boolean isSamsungPhone() {
+        if (getPhoneModel().contains("samsung")){
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isHuaweiPhone() {
+        if (getPhoneModel().contains("huawei") || getPhoneModel().contains("honour")){
+            return true;
+        }
+        return false;
     }
 }

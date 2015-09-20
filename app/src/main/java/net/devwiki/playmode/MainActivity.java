@@ -114,7 +114,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
             }
         } else {
             if(value == sensor.getMaximumRange()){
-                playerManager.changeToSpeaker();
+                playerManager.changeToSpeakerNotStop();
                 setScreenOn();
             }
         }
@@ -196,7 +196,6 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                     int state = intent.getIntExtra("state", 0);
                     if (state == 0){
                         addHint("耳机已拔出");
-                        hintView.append("耳机已拔出\n");
                     } else if (state == 1){
                         addHint("耳机已插入");
                         playerManager.changeToHeadset();

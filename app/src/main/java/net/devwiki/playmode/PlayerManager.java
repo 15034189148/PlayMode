@@ -84,7 +84,7 @@ public class PlayerManager {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    changeToSpeaker();
+                    changeToSpeakerNotStop();
                 }
             });
         } catch (IOException e) {
@@ -135,6 +135,16 @@ public class PlayerManager {
      * 切换到外放
      */
     public void changeToSpeaker(){
+        if (PhoneModelUtil.isSamsungPhone() || PhoneModelUtil.isHuaweiPhone()){
+            stop();
+            changeToSpeakerNotStop();
+            play(filePath, callback);
+        } else {
+            changeToSpeakerNotStop();
+        }
+    }
+
+    public void changeToSpeakerNotStop(){
         audioManager.setMode(AudioManager.MODE_NORMAL);
         audioManager.setSpeakerphoneOn(true);
     }
