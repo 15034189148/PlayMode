@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     private SensorManager sensorManager;
     private Sensor sensor;
     private PlayerManager playerManager;
-    private MyReceiver receiver;
+    private HeadsetReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +42,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         hintView = (TextView) findViewById(R.id.hint);
         hintView.setMovementMethod(ScrollingMovementMethod.getInstance());
 
-        PATH = PATH + getPackageName() + "/" + R.raw.alice;
+        PATH = PATH + getPackageName() + "/" + R.raw.littlestarts;
         playerManager = PlayerManager.getManager();
 
         addHint("onCreate");
@@ -64,7 +64,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
-        receiver = new MyReceiver();
+        receiver = new HeadsetReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_HEADSET_PLUG);
         filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -114,7 +114,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
             }
         } else {
             if(value == sensor.getMaximumRange()){
-                playerManager.changeToSpeakerNotStop();
+                playerManager.changeToSpeakerNoStop();
                 setScreenOn();
             }
         }
@@ -143,19 +143,16 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     private PlayerManager.PlayCallback callback = new PlayerManager.PlayCallback() {
         @Override
         public void onPrepared() {
-            DLog.d("----------音乐准备完毕----------");
             addHint("音乐准备完毕,开始播放");
         }
 
         @Override
         public void onComplete() {
-            DLog.d("----------音乐播放完毕----------");
             addHint("音乐播放完毕");
         }
 
         @Override
         public void onStop() {
-            DLog.d("----------音乐停止播放----------");
             addHint("音乐停止播放");
         }
     };
@@ -185,30 +182,36 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         return super.onKeyDown(keyCode, event);
     }
 
-    class MyReceiver extends BroadcastReceiver{
+    class HeadsetReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             switch (action){
-                //通过广播判断耳机是否插入
+                //插入和拔出耳机会触发此广播
                 case Intent.ACTION_HEADSET_PLUG:
+                    addHint(Intent.ACTION_HEADSET_PLUG);
                     int state = intent.getIntExtra("state", 0);
-                    if (state == 0){
-                        addHint("耳机已拔出");
-                    } else if (state == 1){
+                    if (state == 1){
                         addHint("耳机已插入");
                         playerManager.changeToHeadset();
+                    } else if (state == 0){
+                        playerManager.resume();
+                        if (playerManager.isPlaying()){
+                            addHint("音乐恢复播放");
+                        }
                     }
                     break;
-                /*case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
-                    DLog.d("ACTION_AUDIO_BECOMING_NOISY");
-                    if (playerManager.isWiredHeadsetOn()){
-                        playerManager.changeToHeadset();
-                    } else {
-                        playerManager.changeToSpeaker();
+                //拔出耳机会触发此广播,拔出不会触发,且此广播比上一个早,故可在此暂停播放,收到上一个广播时在恢复播放
+                case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
+                    addHint(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+                    addHint("耳机已拔出");
+                    playerManager.pause();
+                    if (playerManager.isPause()){
+                        addHint("音乐已暂停");
                     }
-                    break;*/
+                    playerManager.changeToSpeakerNoStop();
+                    break;
                 default:
                     break;
             }

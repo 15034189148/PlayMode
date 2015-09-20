@@ -21,6 +21,9 @@ public class PlayerManager {
     private PlayCallback callback;
     private Context context;
 
+    private boolean isPause = false;
+    private String filePath;
+
     public static PlayerManager getManager(){
         if (playerManager == null){
             synchronized (PlayerManager.class){
@@ -57,8 +60,6 @@ public class PlayerManager {
         void onStop();
     }
 
-    private String filePath;
-
     /**
      * 播放音乐
      * @param path 音乐文件路径
@@ -84,11 +85,29 @@ public class PlayerManager {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    changeToSpeakerNotStop();
+                    changeToSpeakerNoStop();
                 }
             });
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean isPause(){
+        return isPause;
+    }
+
+    public void pause(){
+        if (isPlaying()){
+            isPause = true;
+            mediaPlayer.pause();
+        }
+    }
+
+    public void resume(){
+        if (isPause){
+            isPause = false;
+            mediaPlayer.start();
         }
     }
 
@@ -114,20 +133,19 @@ public class PlayerManager {
     public void changeToReceiver(){
         if (isPlaying()){
             stop();
-            audioManager.setSpeakerphoneOn(false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            } else {
-                audioManager.setMode(AudioManager.MODE_IN_CALL);
-            }
+            changeToReceiverNoStop();
             play(filePath, callback);
         } else {
-            audioManager.setSpeakerphoneOn(false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            } else {
-                audioManager.setMode(AudioManager.MODE_IN_CALL);
-            }
+            changeToReceiverNoStop();
+        }
+    }
+
+    private void changeToReceiverNoStop(){
+        audioManager.setSpeakerphoneOn(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        } else {
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
         }
     }
 
@@ -137,14 +155,14 @@ public class PlayerManager {
     public void changeToSpeaker(){
         if (PhoneModelUtil.isSamsungPhone() || PhoneModelUtil.isHuaweiPhone()){
             stop();
-            changeToSpeakerNotStop();
+            changeToSpeakerNoStop();
             play(filePath, callback);
         } else {
-            changeToSpeakerNotStop();
+            changeToSpeakerNoStop();
         }
     }
 
-    public void changeToSpeakerNotStop(){
+    public void changeToSpeakerNoStop(){
         audioManager.setMode(AudioManager.MODE_NORMAL);
         audioManager.setSpeakerphoneOn(true);
     }

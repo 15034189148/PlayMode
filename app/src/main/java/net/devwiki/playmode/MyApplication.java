@@ -5,7 +5,7 @@ import android.content.Context;
 
 /**
  * APP的Application
- * Created by Administrator on 2015/9/16 0016.
+ * Created by DevWiki on 2015/9/16 0016.
  */
 public class MyApplication extends Application {
 
