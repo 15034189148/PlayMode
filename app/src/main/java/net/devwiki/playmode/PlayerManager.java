@@ -9,6 +9,7 @@ import android.os.Build;
 import java.io.IOException;
 
 /**
+ * 音乐播放管理类
  * Created by Administrator on 2015/8/27 0027.
  */
 public class PlayerManager {
@@ -35,22 +36,39 @@ public class PlayerManager {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
+    /**
+     * 播放回调接口
+     */
     public interface PlayCallback{
 
+        /**
+         * 音乐准备完毕
+         */
         void onPrepared();
 
+        /**
+         * 音乐播放完成
+         */
         void onComplete();
 
+        /**
+         * 音乐停止播放
+         */
         void onStop();
     }
 
     private String filePath;
 
+    /**
+     * 播放音乐
+     * @param path 音乐文件路径
+     * @param callback 播放回调函数
+     */
     public void play(String path, final PlayCallback callback){
         this.filePath = path;
         this.callback = callback;
         if (isWiredHeadsetOn()){
-            changeToEarphoneForEarphone();
+            changeToHeadset();
         }
         try {
             mediaPlayer.reset();
@@ -74,15 +92,26 @@ public class PlayerManager {
         }
     }
 
-    public void changeToEarphoneForEarphone(){
+    /**
+     * 切换到耳机模式
+     */
+    public void changeToHeadset(){
         audioManager.setSpeakerphoneOn(false);
     }
 
+    /**
+     * 耳机是否插入
+     * @return 插入耳机返回true,否则返回false
+     */
+    @SuppressWarnings("deprecation")
     public boolean isWiredHeadsetOn(){
         return audioManager.isWiredHeadsetOn();
     }
 
-    public void changeToEarphoneForSensor(){
+    /**
+     * 切换到听筒
+     */
+    public void changeToReceiver(){
         if (isPlaying()){
             stop();
             audioManager.setSpeakerphoneOn(false);
@@ -102,11 +131,17 @@ public class PlayerManager {
         }
     }
 
+    /**
+     * 切换到外放
+     */
     public void changeToSpeaker(){
         audioManager.setMode(AudioManager.MODE_NORMAL);
         audioManager.setSpeakerphoneOn(true);
     }
 
+    /**
+     * 调大音量
+     */
     public void raiseVolume(){
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
@@ -115,6 +150,9 @@ public class PlayerManager {
         }
     }
 
+    /**
+     * 调小音量
+     */
     public void lowerVolume(){
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (currentVolume > 0) {
@@ -123,6 +161,9 @@ public class PlayerManager {
         }
     }
 
+    /**
+     * 停止播放
+     */
     public void stop(){
         if (isPlaying()){
             try {
@@ -134,11 +175,12 @@ public class PlayerManager {
         }
     }
 
-    public boolean isPlaying(){
-        if(mediaPlayer == null){
-            return false;
-        }
-        return mediaPlayer.isPlaying();
+    /**
+     * 是否正在播放
+     * @return 正在播放返回true,否则返回false
+     */
+    public boolean isPlaying() {
+        return mediaPlayer != null && mediaPlayer.isPlaying();
     }
 
 }

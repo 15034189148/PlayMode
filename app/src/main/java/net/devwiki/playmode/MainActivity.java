@@ -23,6 +23,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
 
     private static String PATH = "android.resource://";
 
+    private TextView modelView;
     private TextView hintView;
 
     private PowerManager powerManager;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        modelView = (TextView) findViewById(R.id.model);
         hintView = (TextView) findViewById(R.id.hint);
         hintView.setMovementMethod(ScrollingMovementMethod.getInstance());
 
@@ -44,6 +46,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         playerManager = PlayerManager.getManager();
 
         addHint("onCreate");
+        modelView.setText("手机型号:" + PhoneModelUtil.getPhoneModel());
     }
 
     private void addHint(String hint){
@@ -54,7 +57,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     @Override
     protected void onStart() {
         super.onStart();
-        hintView.append("onStart\n");
+        addHint("onStart");
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -71,19 +74,19 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     @Override
     protected void onResume() {
         super.onResume();
-        hintView.append("onResume\n");
+        addHint("onResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        hintView.append("onPause\n");
+        addHint("onPause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        hintView.append("onStop\n");
+        addHint("onStop");
         sensorManager.unregisterListener(this);
         unregisterReceiver(receiver);
     }
@@ -106,7 +109,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                 playerManager.changeToSpeaker();
                 setScreenOn();
             } else {
-                playerManager.changeToEarphoneForSensor();
+                playerManager.changeToReceiver();
                 setScreenOff();
             }
         } else {
@@ -141,19 +144,19 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         @Override
         public void onPrepared() {
             DLog.d("----------音乐准备完毕----------");
-            hintView.append("音乐准备完毕\n");
+            addHint("音乐准备完毕,开始播放");
         }
 
         @Override
         public void onComplete() {
             DLog.d("----------音乐播放完毕----------");
-            hintView.append("音乐播放完毕\n");
+            addHint("音乐播放完毕");
         }
 
         @Override
         public void onStop() {
             DLog.d("----------音乐停止播放----------");
-            hintView.append("音乐停止播放\n");
+            addHint("音乐停止播放");
         }
     };
 
@@ -192,17 +195,17 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                 case Intent.ACTION_HEADSET_PLUG:
                     int state = intent.getIntExtra("state", 0);
                     if (state == 0){
+                        addHint("耳机已拔出");
                         hintView.append("耳机已拔出\n");
-                        playerManager.changeToSpeaker();
                     } else if (state == 1){
-                        hintView.append("耳机已插入\n");
-                        playerManager.changeToEarphoneForEarphone();
+                        addHint("耳机已插入");
+                        playerManager.changeToHeadset();
                     }
                     break;
                 /*case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
                     DLog.d("ACTION_AUDIO_BECOMING_NOISY");
                     if (playerManager.isWiredHeadsetOn()){
-                        playerManager.changeToEarphoneForEarphone();
+                        playerManager.changeToHeadset();
                     } else {
                         playerManager.changeToSpeaker();
                     }
