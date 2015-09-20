@@ -12,14 +12,18 @@ import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.TextView;
 
 public class MainActivity extends Activity implements SensorEventListener, View.OnClickListener{
 
     public static final String TAG = "MainActivity";
 
     private static String PATH = "android.resource://";
+
+    private TextView hintView;
 
     private PowerManager powerManager;
     private PowerManager.WakeLock wakeLock;
@@ -32,13 +36,25 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        hintView = (TextView) findViewById(R.id.hint);
+        hintView.setMovementMethod(ScrollingMovementMethod.getInstance());
+
         PATH = PATH + getPackageName() + "/" + R.raw.alice;
-        playerManager = PlayerManager.getManager(this);
+        playerManager = PlayerManager.getManager();
+
+        addHint("onCreate");
+    }
+
+    private void addHint(String hint){
+        hintView.append(hint);
+        hintView.append("\n");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        hintView.append("onStart\n");
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -53,26 +69,38 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        hintView.append("onResume\n");
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
-        DLog.d("onPause");
+        hintView.append("onPause\n");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        DLog.d("onStop");
+        hintView.append("onStop\n");
         sensorManager.unregisterListener(this);
         unregisterReceiver(receiver);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        float value = event.values[0];
+        if (value == sensor.getMaximumRange()){
+            addHint("远离距离感应器,传感器的值:" + value);
+        } else {
+            addHint("靠近距离感应器,传感器的值:" + value);
+        }
+
         if (playerManager.isWiredHeadsetOn()){
             return;
         }
-        float value = event.values[0];
-        DLog.d("value:" + value);
+
         if (playerManager.isPlaying()){
             if (value == sensor.getMaximumRange()) {
                 playerManager.changeToSpeaker();
@@ -112,17 +140,20 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     private PlayerManager.PlayCallback callback = new PlayerManager.PlayCallback() {
         @Override
         public void onPrepared() {
-
+            DLog.d("----------音乐准备完毕----------");
+            hintView.append("音乐准备完毕\n");
         }
 
         @Override
         public void onComplete() {
-
+            DLog.d("----------音乐播放完毕----------");
+            hintView.append("音乐播放完毕\n");
         }
 
         @Override
         public void onStop() {
-
+            DLog.d("----------音乐停止播放----------");
+            hintView.append("音乐停止播放\n");
         }
     };
 
@@ -130,6 +161,10 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     public void onClick(View v) {
         if (v.getId() == R.id.play){
             playerManager.play(PATH, callback);
+        }
+
+        if (v.getId() == R.id.stop){
+            playerManager.stop();
         }
     }
 
@@ -152,18 +187,27 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             switch (action){
+                //通过广播判断耳机是否插入
                 case Intent.ACTION_HEADSET_PLUG:
-                    DLog.d("ACTION_HEADSET_PLUG");
+                    int state = intent.getIntExtra("state", 0);
+                    if (state == 0){
+                        hintView.append("耳机已拔出\n");
+                        playerManager.changeToSpeaker();
+                    } else if (state == 1){
+                        hintView.append("耳机已插入\n");
+                        playerManager.changeToEarphoneForEarphone();
+                    }
                     break;
-                case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
+                /*case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
                     DLog.d("ACTION_AUDIO_BECOMING_NOISY");
                     if (playerManager.isWiredHeadsetOn()){
                         playerManager.changeToEarphoneForEarphone();
                     } else {
                         playerManager.changeToSpeaker();
                     }
+                    break;*/
+                default:
                     break;
             }
         }

@@ -12,15 +12,6 @@ public class DLog {
 	private static String methodName;			//所在的方法名
 	private static int lineNumber;				//所在行号
 	
-	private static final int VERBOSE = 1;		//显示Verbose及以上的Log
-	private static final int DEBUG = 2;			//显示Debug及以上的Log
-	private static final int INFO = 3;			//显示Info及以上的Log
-	private static final int WARN = 4;			//显示Warn及以上的Log
-	private static final int ERROR = 5;			//显示Error及以上的Log
-	private static final int NOTHING = 6;		//全部不显示
-	
-	public static final int LEVEL = VERBOSE;	//控制显示的级别
-
 	private DLog() {
 	}
 
@@ -52,10 +43,8 @@ public class DLog {
 			return;
 		}
 
-		if (LEVEL <= VERBOSE) {
-			getMethodNames(new Throwable().getStackTrace());
-			Log.v(className, createLog(message));
-		}
+		getMethodNames(new Throwable().getStackTrace());
+		Log.v(className, createLog(message));
 	}
 
 	public static void d(String message) {
@@ -63,10 +52,8 @@ public class DLog {
 			return;
 		}
 
-		if (LEVEL <= DEBUG) {
-			getMethodNames(new Throwable().getStackTrace());
-			Log.d(className, createLog(message));
-		}
+		getMethodNames(new Throwable().getStackTrace());
+		Log.d(className, createLog(message));
 	}
 
 	public static void i(String message) {
@@ -74,10 +61,8 @@ public class DLog {
 			return;
 		}
 
-		if (LEVEL <= INFO) {
-			getMethodNames(new Throwable().getStackTrace());
-			Log.i(className, createLog(message));
-		}
+		getMethodNames(new Throwable().getStackTrace());
+		Log.i(className, createLog(message));
 	}
 
 	public static void w(String message) {
@@ -85,10 +70,8 @@ public class DLog {
 			return;
 		}
 
-		if (LEVEL <= WARN) {
-			getMethodNames(new Throwable().getStackTrace());
-			Log.w(className, createLog(message));
-		}
+		getMethodNames(new Throwable().getStackTrace());
+		Log.w(className, createLog(message));
 	}
 	
 	public static void e(String message) {
@@ -96,9 +79,7 @@ public class DLog {
 			return;
 		}
 
-		if (LEVEL <= ERROR) {
-			getMethodNames(new Throwable().getStackTrace());
-			Log.e(className, createLog(message));
-		}
+		getMethodNames(new Throwable().getStackTrace());
+		Log.e(className, createLog(message));
 	}
 }

@@ -20,38 +20,20 @@ public class PlayerManager {
     private PlayCallback callback;
     private Context context;
 
-    public static PlayerManager getManager(Context context){
+    public static PlayerManager getManager(){
         if (playerManager == null){
             synchronized (PlayerManager.class){
-                playerManager = new PlayerManager(context);
+                playerManager = new PlayerManager();
             }
         }
         return playerManager;
     }
 
-    private PlayerManager(Context context){
+    private PlayerManager(){
         this.context = MyApplication.getContext();
         mediaPlayer = new MediaPlayer();
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
-
-//    private AudioManager.OnAudioFocusChangeListener changeListener = new AudioManager.OnAudioFocusChangeListener() {
-//        @Override
-//        public void onAudioFocusChange(int focusChange) {
-//            if (focusChange == AudioManager.AUDIOFOCUS_REQUEST_GRANTED){
-//                mediaPlayer.start();
-//            }
-//        }
-//    };
-//
-//    private int requestAudioFocus(){
-//        return audioManager.requestAudioFocus(changeListener, AudioManager.STREAM_MUSIC,
-//                AudioManager.AUDIOFOCUS_GAIN);
-//    }
-//
-//    private int abandonAudioFocus(){
-//        return audioManager.abandonAudioFocus(changeListener);
-//    }
 
     public interface PlayCallback{
 
@@ -77,9 +59,6 @@ public class PlayerManager {
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-//                    if (requestAudioFocus() == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-//                        mediaPlayer.start();
-//                    }
                     callback.onPrepared();
                     mediaPlayer.start();
                 }
@@ -87,7 +66,6 @@ public class PlayerManager {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-//                    abandonAudioFocus();
                     changeToSpeaker();
                 }
             });
@@ -98,18 +76,9 @@ public class PlayerManager {
 
     public void changeToEarphoneForEarphone(){
         audioManager.setSpeakerphoneOn(false);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-//            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-//        } else {
-//            audioManager.setMode(AudioManager.MODE_IN_CALL);
-//        }
     }
 
     public boolean isWiredHeadsetOn(){
-        return audioManager.isWiredHeadsetOn();
-    }
-
-    public boolean isInEarphoneMode(){
         return audioManager.isWiredHeadsetOn();
     }
 
@@ -139,21 +108,6 @@ public class PlayerManager {
     }
 
     public void raiseVolume(){
-        /*int mode = audioManager.getMode();
-        if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION){
-            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
-            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)) {
-                audioManager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL,
-                        AudioManager.ADJUST_RAISE, AudioManager.FX_FOCUS_NAVIGATION_UP);
-            }
-        } else if (mode == AudioManager.MODE_NORMAL){
-            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                        AudioManager.ADJUST_RAISE, AudioManager.FX_FOCUS_NAVIGATION_UP);
-            }
-        }*/
-
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
@@ -162,23 +116,8 @@ public class PlayerManager {
     }
 
     public void lowerVolume(){
-        /*int mode = audioManager.getMode();
-        if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION){
-            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
-            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)) {
-                audioManager.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL,
-                        AudioManager.ADJUST_LOWER, AudioManager.FX_FOCUS_NAVIGATION_UP);
-            }
-        } else if (mode == AudioManager.MODE_NORMAL){
-            int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                        AudioManager.ADJUST_LOWER, AudioManager.FX_FOCUS_NAVIGATION_UP);
-            }
-        }*/
-
         int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        if (currentVolume < audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+        if (currentVolume > 0) {
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
                     AudioManager.ADJUST_LOWER, AudioManager.FX_FOCUS_NAVIGATION_UP);
         }

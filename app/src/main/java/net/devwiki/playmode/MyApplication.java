@@ -17,6 +17,10 @@ public class MyApplication extends Application {
         context = this;
     }
 
+    /**
+     * 获取APP的Context方便其他地方调用
+     * @return
+     */
     public static Context getContext(){
         return context;
     }
