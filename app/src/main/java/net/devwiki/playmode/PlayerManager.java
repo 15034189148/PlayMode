@@ -14,6 +14,21 @@ import java.io.IOException;
  */
 public class PlayerManager {
 
+    /**
+     * 外放模式
+     */
+    public static final int MODE_SPEAKER = 0;
+
+    /**
+     * 耳机模式
+     */
+    public static final int MODE_HEADSET = 1;
+
+    /**
+     * 听筒模式
+     */
+    public static final int MODE_EARPIECE = 2;
+
     private static PlayerManager playerManager;
 
     private AudioManager audioManager;
@@ -23,6 +38,8 @@ public class PlayerManager {
 
     private boolean isPause = false;
     private String filePath;
+
+    private int currentMode = MODE_SPEAKER;
 
     public static PlayerManager getManager(){
         if (playerManager == null){
@@ -35,8 +52,29 @@ public class PlayerManager {
 
     private PlayerManager(){
         this.context = MyApplication.getContext();
+        initMediaPlayer();
+        initAudioManager();
+    }
+
+    /**
+     * 初始化播放器
+     */
+    private void initMediaPlayer() {
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    }
+
+    /**
+     * 初始化音频管理器
+     */
+    private void initAudioManager() {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        } else {
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
+        }
+        audioManager.setSpeakerphoneOn(true);			//默认为扬声器播放
     }
 
     /**
@@ -68,13 +106,10 @@ public class PlayerManager {
     public void play(String path, final PlayCallback callback){
         this.filePath = path;
         this.callback = callback;
-        if (isWiredHeadsetOn()){
-            changeToHeadset();
-        }
         try {
             mediaPlayer.reset();
             mediaPlayer.setDataSource(context, Uri.parse(path));
-            mediaPlayer.prepare();
+            mediaPlayer.prepareAsync();
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
@@ -85,7 +120,7 @@ public class PlayerManager {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    changeToSpeakerNoStop();
+                    resetPlayMode();
                 }
             });
         } catch (IOException e) {
@@ -112,59 +147,50 @@ public class PlayerManager {
     }
 
     /**
-     * 切换到耳机模式
+     * 获取当前播放模式
+     * @return
      */
-    public void changeToHeadset(){
-        audioManager.setSpeakerphoneOn(false);
+    public int getCurrentMode() {
+        return currentMode;
     }
 
     /**
-     * 耳机是否插入
-     * @return 插入耳机返回true,否则返回false
+     * 切换到听筒模式
      */
-    @SuppressWarnings("deprecation")
-    public boolean isWiredHeadsetOn(){
-        return audioManager.isWiredHeadsetOn();
-    }
-
-    /**
-     * 切换到听筒
-     */
-    public void changeToReceiver(){
-        if (isPlaying()){
-            stop();
-            changeToReceiverNoStop();
-            play(filePath, callback);
-        } else {
-            changeToReceiverNoStop();
-        }
-    }
-
-    private void changeToReceiverNoStop(){
+    public void changeToEarpieceMode(){
+        currentMode = MODE_EARPIECE;
         audioManager.setSpeakerphoneOn(false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                    audioManager.getStreamMaxVolume(AudioManager.MODE_IN_COMMUNICATION), AudioManager.FX_KEY_CLICK);
         } else {
-            audioManager.setMode(AudioManager.MODE_IN_CALL);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                    audioManager.getStreamMaxVolume(AudioManager.MODE_IN_CALL), AudioManager.FX_KEY_CLICK);
         }
     }
 
     /**
-     * 切换到外放
+     * 切换到耳机模式
      */
-    public void changeToSpeaker(){
-        if (PhoneModelUtil.isSamsungPhone() || PhoneModelUtil.isHuaweiPhone()){
-            stop();
-            changeToSpeakerNoStop();
-            play(filePath, callback);
-        } else {
-            changeToSpeakerNoStop();
-        }
+    public void changeToHeadsetMode(){
+        currentMode = MODE_HEADSET;
+        audioManager.setSpeakerphoneOn(false);
     }
 
-    public void changeToSpeakerNoStop(){
-        audioManager.setMode(AudioManager.MODE_NORMAL);
+    /**
+     * 切换到外放模式
+     */
+    public void changeToSpeakerMode(){
+        currentMode = MODE_SPEAKER;
         audioManager.setSpeakerphoneOn(true);
+    }
+
+    public void resetPlayMode(){
+        if (audioManager.isWiredHeadsetOn()){
+            changeToHeadsetMode();
+        } else {
+            changeToSpeakerMode();
+        }
     }
 
     /**

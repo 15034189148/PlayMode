@@ -93,6 +93,11 @@ public class MainActivity extends Activity implements SensorEventListener, View.
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        //耳机模式下直接返回
+        if (playerManager.getCurrentMode() == PlayerManager.MODE_HEADSET){
+            return;
+        }
+
         float value = event.values[0];
         if (value == sensor.getMaximumRange()){
             addHint("远离距离感应器,传感器的值:" + value);
@@ -100,21 +105,17 @@ public class MainActivity extends Activity implements SensorEventListener, View.
             addHint("靠近距离感应器,传感器的值:" + value);
         }
 
-        if (playerManager.isWiredHeadsetOn()){
-            return;
-        }
-
         if (playerManager.isPlaying()){
             if (value == sensor.getMaximumRange()) {
-                playerManager.changeToSpeaker();
+                playerManager.changeToSpeakerMode();
                 setScreenOn();
             } else {
-                playerManager.changeToReceiver();
+                playerManager.changeToEarpieceMode();
                 setScreenOff();
             }
         } else {
             if(value == sensor.getMaximumRange()){
-                playerManager.changeToSpeakerNoStop();
+                playerManager.changeToSpeakerMode();
                 setScreenOn();
             }
         }
@@ -172,14 +173,15 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode){
             case KeyEvent.KEYCODE_VOLUME_UP:
-                playerManager.raiseVolume();
+                PlayerManager.getManager().raiseVolume();
                 break;
             case KeyEvent.ACTION_DOWN:
-                playerManager.lowerVolume();
+                PlayerManager.getManager().lowerVolume();
                 break;
-
+            default:
+                break;
         }
-        return super.onKeyDown(keyCode, event);
+        return true;
     }
 
     class HeadsetReceiver extends BroadcastReceiver{
@@ -194,7 +196,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                     int state = intent.getIntExtra("state", 0);
                     if (state == 1){
                         addHint("耳机已插入");
-                        playerManager.changeToHeadset();
+                        playerManager.changeToHeadsetMode();
                     } else if (state == 0){
                         playerManager.resume();
                         if (playerManager.isPlaying()){
@@ -210,7 +212,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                     if (playerManager.isPause()){
                         addHint("音乐已暂停");
                     }
-                    playerManager.changeToSpeakerNoStop();
+                    playerManager.changeToSpeakerMode();
                     break;
                 default:
                     break;
